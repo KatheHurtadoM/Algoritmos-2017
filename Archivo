@@ -1,0 +1,183 @@
+#include "stdafx.h"
+#include "stdlib.h"
+#include "conio.h"
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+void add(void);
+void add_directo(void);
+void list(void);
+void consulta(void);
+void borrar_logico(void);
+void borrar_fisico(void);
+void modif(void);
+void modif_directo(void);
+int encontrarpos(int cod);
+
+struct prod{
+	int codigo;
+	string descrip;
+	int cantidad;
+	float precio;
+	char garantia;
+	char estado;
+};
+	prod reg;
+	FILE *ptr;
+
+void main()
+{
+int op;
+	do{
+	cout<<"         MENU"<<endl;
+
+	cout<<"(1) adicion"<<endl;
+	cout<<"(2) adicion directa"<<endl;
+	cout<<"(3) listado"<<endl;
+	cout<<"(4) consulta o listado directo"<<endl;
+	cout<<"(5) modificado"<<endl;
+	cout<<"(6) modificado directo"<<endl;
+	cout<<"(7) borrado logico"<<endl;
+	cout<<"(8) borrado fisico"<<endl;
+	cout<<"(0) SALIR"<<endl;
+	cout<<endl;
+	cout<<"ingrese una opcion"<<endl;
+	cin>>op;
+	switch(op)
+	{
+	case 1:
+		{
+		add();
+		break;
+		}
+	case 2:
+		{
+	
+		break;
+		}
+
+	case 3:
+		{
+		list();
+		break;
+		}
+	case 4:
+		{
+		
+		break;
+		}
+	case 5:
+		{
+
+		break;
+		}
+	case 6:
+		{
+	
+		break;
+		}
+	case 7:
+		{
+	
+		break;
+		}
+	case 8:
+		{
+		
+		break;
+		}
+	case 0:
+		{
+		cout<<"salir"<<endl;
+		break;
+		}
+	default:
+		{
+		cout<<"error"<<endl;
+		break;
+		}
+	}
+	}while(op!=0);
+	getch();
+}
+
+void add(void)
+{
+	ptr=fopen("producto.dat","ab");
+
+	if(ptr==NULL)
+		cout<<"no existe el archivo"<<endl;
+	else 
+	{
+	cin.ignore();
+	cout<<"ingrese el codigo del producto"<<endl;
+	cin>>reg.codigo;
+	cin.ignore();
+	cout<<"ingrese la descripcion del producto"<<endl;
+	getline(cin,reg.descrip);
+	cout<<"ingrese la cantidad"<<endl;
+	cin>>reg.cantidad;
+	cout<<"ingrese precio"<<endl;
+	cin>>reg.precio;
+	cin.ignore();
+	do{
+	cout<<"ingrese S si tiene garantia, N si no tiene garantia"<<endl;
+	reg.garantia=toupper(getche()); 
+	}while((reg.garantia!='S')&&(reg.garantia!='N'));
+	reg.estado='S';
+	fwrite(&reg,sizeof(reg),1,ptr);
+	fclose(ptr);
+
+	cout<<"producto registrado"<<endl;
+	cout<<"oprima cualquier tecla para continuar"<<endl;
+	return;
+	getch();
+
+	}
+
+}
+
+int encontrarpos(int cod)
+{
+	int cont=0;
+	ptr=fopen("productos.dat","rb");
+	if(ptr==NULL)
+		cout<<"no existe el archivo"<<endl;
+	else 
+	{
+		cont++;
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr)&&cod!=reg.codigo)
+		{
+		fread(&reg,sizeof(reg),1,ptr);
+		cont++;
+		}
+	}
+	return(cont);
+}
+
+void list(void)
+{
+	ptr=fopen("producto.dat","rb");
+	if(ptr==NULL)
+	{	
+		cout<<"no existe el archivo"<<endl;
+		getch();
+		return;
+	}
+	
+	cout<< cout<< "\n\rNo Prod       Descripcion      Cantidad       Precio         Garantia       estado"<<endl; 
+	cout << "\n\r----------------------------------------------------------------------------------------"<<endl;
+	fread(&reg,sizeof(reg),1,ptr);
+	while(!feof(ptr))
+	{
+	cout<<reg.codigo<<"\t""\t"<<reg.descrip<<"\t""\t"<<reg.cantidad<<"\t""\t"<<reg.precio<<"\t""\t"<<reg.garantia<<"\t""\t"<<reg.estado<<endl; 
+	fread(&reg,sizeof(reg),1,ptr);
+	}
+	fclose(ptr);
+	
+	getch();
+	return;
+}
