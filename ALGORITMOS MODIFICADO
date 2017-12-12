@@ -1,0 +1,2043 @@
+// ProyectoLaboratorioMedico.cpp : Defines the entry point for the console application.
+//
+#include "stdafx.h" 
+#include <iostream>  
+#include <stdio.h>  
+#include "conio.h"   
+#include "stdlib.h" 
+#include <string>
+#include <iomanip>   
+#define N 40
+
+using namespace std;
+
+//ESTRUCTURAS
+struct usuario
+{
+	int idusuario;
+	string nombre;
+	string contrasena;
+	string telefono;
+	int acceso; //1: administrador, 2: encargado, 3: cliente
+	int estado;
+};
+struct cliente
+{
+	int idusuario;
+	string correo;
+	int estado;
+};
+struct encargado
+{
+	int idusuario;
+	string puesto;
+	int estado;
+};
+struct analisis
+{
+	int idanalisis;
+	int idcliente;
+	int idtipoanalisis;
+	int estado;
+};
+struct resultado
+{
+	int idresultado;
+	int idanalisis;
+	string resultados;
+	string diagnostico;
+	int estado;
+};
+struct tipoanalisis
+{
+	int idtipoanalisis;
+	string nombre;
+	float precio;
+	int estado;
+};
+
+int acceso_usuario_actual;
+int id_usuario_actual;
+
+bool Verificar_numero(string x);
+
+void mainIngreso();
+void mainAcceso();
+
+void adminmenu();
+void encargadomain();
+void clientemain();
+
+void menuusuario();
+void menutipoanalisis();
+void menuanalisis();
+void menuresultado();
+
+bool ExisteArchivoUsuario();
+
+void leerusuario(usuario &reg);
+void leercliente(cliente &reg);
+void leerencargado(encargado &reg);
+void leertipoanalisis(tipoanalisis &reg);
+void leeranalisis(analisis &reg);
+void leerresultado(resultado &reg);
+
+void addusuario(int tipo);
+void addcliente(int idusuario);
+void addencargado(int idusuario);
+void addtipoanalisis();
+void addanalisis();
+void addresultado();
+
+void mostrarencabezadousuario();
+void mostrarusuariohorizontal(usuario reg);
+void mostrarusuariovertical(usuario reg);
+void mostrarencabezadocliente();
+void mostrarclientehorizontal(cliente reg);
+void mostrarclientevertical(cliente reg);
+void mostrarencabezadoencargado();
+void mostrarencargadohorizontal(encargado reg);
+void mostrarencargadovertical(encargado reg);
+void mostrarencabezadotipoanalisis();
+void mostrartipoanalisishorizontal(tipoanalisis reg);
+void mostrartipoanalisisvertical(tipoanalisis reg);
+void mostrarencabezadoanalisis();
+void mostraranalisishorizontal(analisis reg);
+void mostraranalisisvertical(analisis reg);
+void mostrarencabezadoresultado();
+void mostrarresultadohorizontal(resultado reg);
+void mostrarresultadovertical(resultado reg);
+
+void listarusuario();
+void listarcliente();
+void listarencargado();
+void listartipoanalisis();
+void listaranalisis();
+void listaranalisispendiente();
+void listarresultado();
+
+int obtenerPosicionUsuario(int id);
+int obtenerPosicionCliente(int id);
+int obtenerPosicionEncargado(int id);
+int obtenerPosicionTipoAnalisis(int id);
+int obtenerPosicionAnalisis(int id);
+int obtenerPosicionResultado(int id);
+
+void modificarUsuario();
+void modificarCliente();
+void modificarEncargado();
+void modificarTipoAnalisis();
+void modificarAnalisis();
+void modificarResultado();
+
+void buscarUsuario();
+void buscarCliente();
+void buscarEncargado();
+void buscarTipoAnalisis();
+void buscarAnalisis();
+void buscarResultado();
+
+void eliminarUsuario();
+void eliminarCliente(int id);
+void eliminarEncargado(int id);
+void eliminarTipoAnalisis();
+void eliminarAnalisis();
+void eliminarResultado();
+
+bool existeUsuario(int id);
+bool existeTipoAnalisis(int id);
+bool existeAnalisis(int id);
+bool existeResultado(int id);
+void mostrarTipoUsuario(int x);
+
+void mostrarnombreanalisis(int idtipoanalisis);
+void mostrarnombrecliente(int idcliente);
+
+bool resultadoPendiente(int id);
+void reporteresultadosdeanalisis();
+
+void main()
+{
+	if(!ExisteArchivoUsuario())
+	{
+		addusuario(1);
+	}
+	mainIngreso();
+	getch();
+}
+
+void mainIngreso()
+{
+	int opc1;
+	do{
+		cout << endl << "------------------------------------------------";
+		cout << endl << "------------- BIENVENIDO A MOVILAB -------------";
+		cout << endl << "------------------------------------------------";
+		cout << endl << "1.- Registro : ";
+		cout << endl << "2.- Acceso: ";
+		cout << endl << "0.- Salir: ";
+		cout << endl << "---------------------------------------";
+		cout << endl << "Seleccione la Opcion que desea: ";
+		cin >> opc1;
+		switch(opc1)
+		{
+		case 1:
+			{
+				addusuario(3);
+				//mostrarusuario();
+				break;
+			}
+		case 2: 
+			{
+				mainAcceso();
+				break;
+			}
+		case 0:
+			{
+				cout<<"SALIR"<<endl;
+			}
+		default:
+			{
+				cout<<"OPCION INVALIDA"<<endl;
+			}
+		}
+	}while(opc1!=0);
+}
+void mainAcceso()
+{
+	int id;
+	string dato;
+	FILE *ptr;
+	usuario reg;
+	cout << endl << "---------------------------------------";
+	cout << endl << "------- Verificar usuario  ------------";
+	cout << endl << "---------------------------------------";
+
+	cout << endl << "Usuario: ";
+	cin >> id;
+	cout << endl << "Contrasena: ";
+	do{
+		getline(cin, dato);
+	}while(dato.size()==0);
+	ptr = fopen("Usuarios.dat","rb");
+	acceso_usuario_actual = 0;
+	if(ptr != NULL)
+	{
+		fread(&reg, sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idusuario == id && reg.contrasena == dato)
+			{
+				acceso_usuario_actual = reg.acceso;
+				id_usuario_actual = reg.idusuario;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	//getch();
+	switch(acceso_usuario_actual)
+	{
+	case 1:
+		adminmenu();
+		break;
+	case 2:
+		encargadomain();
+		break;
+	case 3:
+		clientemain();
+		break;
+	default:
+		cout << endl << "Error: nombre de usuario o contraseña invalido";
+		break;
+	}
+}
+
+
+void adminmenu()
+{
+	int opc;
+	do{
+		cout << endl;
+		cout << endl << "-----------------------------------------";
+		cout << endl << "------- M E N U - A D M I N -----";
+		cout << endl << "-----------------------------------------";
+		cout << endl << "1.- Usuarios: ";
+		cout << endl << "2.- Tipos de analisis: ";
+		cout << endl << "3.- Analisis: ";
+		cout << endl << "4.- Resultado: ";
+		cout << endl << "0.- salir ";
+		cout << endl << "-----------------------------------------";
+		cout << endl << "Seleccione una opcion: ";
+		cin >> opc;
+		switch(opc)
+		{
+		case 1: 
+			{
+				menuusuario();
+				break;
+			}
+		case 2: 
+			{
+				menutipoanalisis();
+				break;
+			}
+		case 3:
+			{
+				menuanalisis();
+				break;
+			}
+		case 4:
+			{
+				menuresultado();
+				break;
+			}
+		case 0:
+			{
+				cout<<"SALIR"<<endl;
+			}
+		default:
+			{
+				cout<<"OPCION INVALIDA"<<endl;
+			}
+		}
+	}while(opc!=0);
+	return;
+}
+void encargadomain()
+{
+	FILE *ptr;
+	int opc;
+	//int cont=0;
+	do{
+		cout << endl;
+		cout << endl << "-----------------------------------------";
+		cout << endl << "------- M E N U - E N C A R G A D O -------";
+		cout << endl << "-----------------------------------------";
+		cout << endl << "1.- Listado analisis: ";
+		cout << endl << "2.- Listado analisis pendiente: ";
+		cout << endl << "3.- Ingresar resultado: ";
+		cout << endl << "0.- salir: ";
+		cout << endl << "-----------------------------------------";
+		cout << endl << "Seleccione una opcion: ";
+		cin >> opc;
+		switch(opc)
+		{
+		case 1: 
+			listaranalisis();
+			break;
+		case 2: 
+			listaranalisispendiente();
+			break;
+		case 3:
+			addresultado();
+			break;
+		case 0:
+			cout<<"SALIR"<<endl;
+			break;
+		default:
+			cout<<"OPCION INVALIDA"<<endl;
+		}
+	}while(opc!=0);
+	return;
+}
+bool Verificar_Numero(string x)
+{
+	bool k = false;
+	int i = 0;
+	while (i < x.length())
+	{
+		if (isdigit(x[i]))
+		{
+			k = true;
+		}
+		else
+		{
+			k = false;
+			i = x.length();
+		}
+		i++;
+	}
+	return k;
+}
+
+
+void clientemain()
+{
+	FILE *ptr;
+	int opc;
+	do{
+		cout << endl;
+		cout << endl << "-----------------------------------------";
+		cout << endl << "------- M E N U - C L I E N T E S -------";
+		cout << endl << "-----------------------------------------";
+		cout << endl << "1.- Adicionar analisis: ";
+		cout << endl << "2.- Mostrar analisis: ";
+		cout << endl << "3.- Reporte de resultados de analisis: ";
+		cout << endl << "0.- salir: ";
+		cout << endl << "-----------------------------------------";
+		cout << endl << "Seleccione una opcion: ";
+		cin >> opc;
+		switch(opc)
+		{
+		case 1: 
+			addanalisis();
+			break;
+		case 2: 
+			buscarAnalisis();
+			break;
+		case 3:
+			reporteresultadosdeanalisis();
+			break;
+		case 0:
+			cout<<"SALIR"<<endl;
+			break;
+		default:
+			cout<<"OPCION INVALIDA"<<endl;
+		}
+	}while(opc!=0);
+	return;
+}
+void menuusuario()
+{
+	int opc;
+	do{
+		cout << endl;
+		cout << endl << "-----------------------------------------";
+		cout << endl << "------- M E N U - U S U A R I O -----"; 
+		cout << endl << "-----------------------------------------";
+		cout << endl << "1.- Listado: ";
+		cout << endl << "2.- Adicionar Encargado: ";
+		cout << endl << "3.- Adicionar Cliente: ";
+		cout << endl << "4.- Buscar: ";
+		cout << endl << "5.- Modificar: ";
+		cout << endl << "6.- Eliminar: ";
+		cout << endl << "0.- salir ";
+		cout << endl << "-----------------------------------------";
+		cout << endl << "Seleccione una opcion: ";
+		cin >> opc;
+		switch(opc)
+		{
+		case 1: 
+			{
+				listarusuario();
+				break;
+			}
+		case 2: 
+			{
+				addusuario(2);
+				break;
+			}
+		case 3: 
+			{
+				addusuario(3);
+				break;
+			}
+		case 4:
+			{
+				buscarUsuario();
+				break;
+			}
+		case 5:
+			{
+				modificarUsuario();
+				break;
+			}
+		case 6:
+			{
+				eliminarUsuario();
+				break;
+			}
+		default:
+			{
+				cout<<"OPCION INVALIDA"<<endl;
+			}
+		}
+	}while(opc!=0);
+	return;
+}
+void menutipoanalisis()
+{
+	int opc;
+	do{
+		cout << endl;
+		cout << endl << "-----------------------------------------";
+		cout << endl << "------- M E N U - T I P O - D E - A N A L I S I S -----"; 
+		cout << endl << "-----------------------------------------";
+		cout << endl << "1.- Listado: ";
+		cout << endl << "2.- Adicionar: ";
+		cout << endl << "3.- Buscar: ";
+		cout << endl << "4.- Modificar: ";
+		cout << endl << "5.- Eliminar: ";
+		cout << endl << "0.- salir ";
+		cout << endl << "-----------------------------------------";
+		cout << endl << "Seleccione una opcion: ";
+		cin >> opc;
+		switch(opc)
+		{
+		case 1: 
+			{
+				listartipoanalisis();
+				break;
+			}
+		case 2: 
+			{
+				addtipoanalisis();
+				break;
+			}
+		case 3: 
+			{
+				buscarTipoAnalisis();
+				break;
+			}
+		case 4:
+			{
+				modificarTipoAnalisis();
+				break;
+			}
+		case 5:
+			{
+				eliminarTipoAnalisis();
+				break;
+			}
+		default:
+			{
+				cout<<"OPCION INVALIDA"<<endl;
+			}
+		}
+	}while(opc!=0);
+	return;
+}
+
+
+void menuanalisis()
+{
+	int opc;
+	do{
+		cout << endl;
+		cout << endl << "-----------------------------------------";
+		cout << endl << "------- M E N U - A N A L I S I S -----"; 
+		cout << endl << "-----------------------------------------";
+		cout << endl << "1.- Listado: ";
+		cout << endl << "2.- Adicionar: ";
+		cout << endl << "3.- Buscar: ";
+		cout << endl << "4.- Modificar: ";
+		cout << endl << "5.- Eliminar: ";
+		cout << endl << "0.- salir ";
+		cout << endl << "-----------------------------------------";
+		cout << endl << "Seleccione una opcion: ";
+		cin >> opc;
+		switch(opc)
+		{
+		case 1: 
+			{
+				listaranalisis();
+				break;
+			}
+		case 2: 
+			{
+				addanalisis();
+				break;
+			}
+		case 3: 
+			{
+				buscarAnalisis();
+				break;
+			}
+		case 4:
+			{
+				modificarAnalisis();
+				break;
+			}
+		case 5:
+			{
+				eliminarAnalisis();
+				break;
+			}
+		default:
+			{
+				cout<<"OPCION INVALIDA"<<endl;
+			}
+		}
+	}while(opc!=0);
+	return;
+}
+
+void menuresultado()
+{
+	int opc;
+	do{
+		cout << endl;
+		cout << endl << "-----------------------------------------";
+		cout << endl << "------- M E N U - A N A L I S I S -----"; 
+		cout << endl << "-----------------------------------------";
+		cout << endl << "1.- Listado: ";
+		cout << endl << "2.- Adicionar: ";
+		cout << endl << "3.- Buscar: ";
+		cout << endl << "4.- Modificar: ";
+		cout << endl << "5.- Eliminar: ";
+		cout << endl << "0.- salir ";
+		cout << endl << "-----------------------------------------";
+		cout << endl << "Seleccione una opcion: ";
+		cin >> opc;
+		switch(opc)
+		{
+		case 1: 
+			{
+				listarresultado();
+				break;
+			}
+		case 2: 
+			{
+				addresultado();
+				break;
+			}
+		case 3: 
+			{
+				buscarResultado();
+				break;
+			}
+		case 4:
+			{
+				modificarResultado();
+				break;
+			}
+		case 5:
+			{
+				eliminarResultado();
+				break;
+			}
+		default:
+			{
+				cout<<"OPCION INVALIDA"<<endl;
+			}
+		}
+	}while(opc!=0);
+	return;
+}
+
+bool ExisteArchivoUsuario()
+{
+	FILE *ptr;
+	ptr = fopen("Usuarios.dat","rb");
+	if(ptr == NULL)
+	{
+		return false;
+	}
+	else
+	{
+		fclose(ptr);
+		return true;
+	}
+}
+
+void leerusuario(usuario &reg)
+{
+	cout << endl << "Ingrese el nombre de usuario: ";
+	do{
+		getline(cin, reg.nombre);
+	}while(reg.nombre.size()==0);
+	cout << endl << "Ingrese la contrasena: ";
+	do{
+		getline(cin,reg.contrasena);
+	}while(reg.contrasena.size()==0);
+	cout << endl << "Telefono: ";
+	do{
+		getline(cin,reg.telefono);
+	}while((reg.telefono.size()==0)|| (!Verificar_Numero(reg.telefono)));
+	reg.estado = 0;
+}
+void leercliente(cliente &reg)
+{
+	cout << endl << "Ingrese el Correo: ";
+	do{
+		getline(cin,reg.correo);
+	}while(reg.correo.size()==0);
+	reg.estado = 0;
+}
+
+void leerencargado(encargado &reg)
+{
+	cout << endl << "Ingrese el puesto: ";
+	do{
+		getline(cin,reg.puesto);
+	}while(reg.puesto.size()==0);
+	reg.estado = 0;
+}
+
+void leertipoanalisis(tipoanalisis &reg)
+{
+	cout << endl << "Ingrese el nombre: ";
+	do{
+		getline(cin,reg.nombre);
+	}while(reg.nombre.size()==0);
+	cout << endl << "Ingresar un precio: ";
+	cin >> reg.precio;
+	reg.estado = 0;
+}
+
+void leeranalisis(analisis &reg)
+{
+	if(acceso_usuario_actual == 3)
+	{
+		reg.idcliente = id_usuario_actual;
+	}
+	else
+	{
+		cout << endl << "Ingresar un Id de cliente: ";
+		cin >> reg.idcliente;
+	}
+	listartipoanalisis();
+	do
+	{
+		cout << endl << "Ingrese el tipo de analisis: ";
+		cin >> reg.idtipoanalisis;
+		if(!existeTipoAnalisis(reg.idtipoanalisis))
+		{
+			cout<< endl <<"id de tipo de analisis no existe";
+		}
+	}while(!existeTipoAnalisis(reg.idtipoanalisis));
+	reg.estado = 0;
+}
+void leerresultado(resultado &reg)
+{
+	listaranalisis();
+	do
+	{
+		cout << endl << "Ingrese el analisis: ";
+		cin >> reg.idanalisis;
+		if(!existeAnalisis(reg.idanalisis))
+		{
+			cout<< endl <<"id de analisis no existe";
+		}
+	}while(!existeAnalisis(reg.idanalisis));
+
+	cout << endl << "Ingrese los resultados del analisis: ";
+	do{
+		getline(cin, reg.resultados);
+	}while(reg.resultados.size()==0);
+
+	cout << endl << "Ingrese el diagnostico: ";
+	do{
+		getline(cin, reg.diagnostico);
+	}while(reg.diagnostico.size()==0);
+	reg.estado = 0;
+}
+//Adicionar
+//tipo 1: admin, 2: encargado, 3: usuario
+void addusuario(int tipo)
+{
+	FILE *ptr;
+	int dup,idusua;
+	ptr = fopen("Usuarios.dat","ab");
+	usuario reg;
+
+	if(tipo == 1)
+	{
+		cout << endl << " No se encontro administrador";
+		cout << endl << " se procedera a crear uno";
+	}
+
+	do
+	{
+		cout << endl << "Ingresar un Id de Usuario: ";
+		cin >> reg.idusuario;
+		if(existeUsuario(reg.idusuario))
+		{
+			cout<< endl <<"id de usuario ocupado, escoger otro";
+		}
+	}while(existeUsuario(reg.idusuario));
+
+	leerusuario(reg);
+
+	reg.acceso = tipo;
+
+	fwrite(&reg, sizeof(reg), 1, ptr);
+	fclose(ptr);
+	if(tipo == 2)
+	{
+		addencargado(reg.idusuario);
+	}
+	if(tipo == 3)
+	{
+		addcliente(reg.idusuario);
+	}
+}
+
+void addcliente(int idusuario)
+{
+	FILE *ptr;
+	ptr = fopen("Cliente.dat","ab");
+	cliente reg;
+
+	reg.idusuario = idusuario;
+	leercliente(reg);
+	fwrite(&reg, sizeof(reg), 1, ptr);
+	fclose(ptr);
+}
+
+void addencargado(int idusuario)
+{
+	FILE *ptr;
+	ptr = fopen("Encargado.dat","ab");
+	encargado reg;
+	reg.idusuario = idusuario;
+	leerencargado(reg);
+	fwrite(&reg, sizeof(reg), 1, ptr);
+	fclose(ptr);
+}
+
+void addtipoanalisis()
+{
+	FILE *ptr;
+	ptr = fopen("TipoAnalisis.dat","ab");
+	tipoanalisis reg;
+
+	do
+	{
+		cout << endl << "Ingresar un Id de tipo de analisis: ";
+		cin >> reg.idtipoanalisis;
+		if(existeTipoAnalisis(reg.idtipoanalisis))
+		{
+			cout<< endl <<"id de tipo de analisis ocupado, escoger otro";
+		}
+	}while(existeTipoAnalisis(reg.idtipoanalisis));
+	leertipoanalisis(reg);
+	fwrite(&reg, sizeof(reg), 1, ptr);
+	fclose(ptr);
+}
+void addanalisis()
+{
+	FILE *ptr;
+	ptr = fopen("Analisis.dat","ab");
+	analisis reg;
+	do
+	{
+		cout << endl << "Ingresar un Id de analisis: ";
+		cin >> reg.idanalisis;
+		if(existeAnalisis(reg.idanalisis))
+		{
+			cout<< endl <<"id de analisis ocupado, escoger otro";
+		}
+	}while(existeAnalisis(reg.idanalisis));
+	leeranalisis(reg);
+	fwrite(&reg, sizeof(reg), 1, ptr);
+	fclose(ptr);
+}
+void addresultado()
+{
+	FILE *ptr;
+	ptr = fopen("Resultado.dat","ab");
+	resultado reg;
+	do
+	{
+		cout << endl << "Ingresar un Id de resultado: ";
+		cin >> reg.idresultado;
+		if(existeResultado(reg.idresultado))
+		{
+			cout<< endl <<"id de resultado ocupado, escoger otro";
+		}
+	}while(existeResultado(reg.idresultado));
+	leerresultado(reg);
+	fwrite(&reg, sizeof(reg), 1, ptr);
+	fclose(ptr);
+}
+void mostrarencabezadousuario()
+{
+	cout << endl << "-----------------------------------------------------------------------------";
+	cout << endl << "---------------------------- LISTADO DE USUARIOS ----------------------------";
+	cout << endl << "-----------------------------------------------------------------------------";
+	cout << endl << "Id usuario" << setw(16) << "Nombre" << setw(12) << "contrasena" << setw(18) << "Telefono" <<setw(10) << "tipo";
+	cout << endl << "-----------------------------------------------------------------------------";
+}
+
+void mostrarusuariohorizontal(usuario reg)
+{
+	cout << endl << setw(5) << reg.idusuario << setw(20) << reg.nombre<< setw(12) << reg.contrasena<< setw(25) << reg.telefono;
+	cout<<"  ";
+	mostrarTipoUsuario(reg.acceso);
+}
+void mostrarusuariovertical(usuario reg)
+{
+	cout<<endl<<"id: " << reg.idusuario;
+	cout<<endl<<"nombre: " << reg.nombre;
+	cout<<endl<<"contrasena: " << reg.contrasena;
+	cout<<endl<<"telefono: " << reg.telefono;
+}
+void mostrarencabezadocliente()
+{
+	cout << endl << "-----------------------------------------------------------------------------";
+	cout << endl << "--------------------------- LISTADO DE CLIENTE ------------------------------";
+	cout << endl << "-----------------------------------------------------------------------------";
+	cout << endl << "Id usuario" << setw(16) << "Correo";
+	cout << endl << "-----------------------------------------------------------------------------";
+}
+
+void mostrarclientehorizontal(cliente reg)
+{
+	cout << endl << setw(5) << reg.idusuario << setw(20) << reg.correo;
+}
+void mostrarclientevertical(cliente reg)
+{
+	cout<<endl<<"id: " << reg.idusuario;
+	cout<<endl<<"correo: " << reg.correo;
+}
+void mostrarencabezadoencargado()
+{
+	cout << endl << "-----------------------------------------------------------------------------";
+	cout << endl << "--------------------------- LISTADO DE ENCARGADO ------------------------------";
+	cout << endl << "-----------------------------------------------------------------------------";
+	cout << endl << "Id usuario" << setw(16) << "Puesto";
+	cout << endl << "-----------------------------------------------------------------------------";
+}
+
+void mostrarencargadohorizontal(encargado reg)
+{
+	cout << endl << setw(5) << reg.idusuario << setw(20) << reg.puesto;
+}
+void mostrarencargadovertical(encargado reg)
+{
+	cout<<endl<<"id: " << reg.idusuario;
+	cout<<endl<<"puesto: " << reg.puesto;
+}
+void mostrarencabezadotipoanalisis()
+{
+	cout << endl << "-----------------------------------------------------------------------------";
+	cout << endl << "--------------------------- LISTADO DE TIPO DE ANALISIS ------------------------------";
+	cout << endl << "-----------------------------------------------------------------------------";
+	cout << endl << "Id" << setw(16) << "Nombre"<< setw(8) << "Precio";
+	cout << endl << "-----------------------------------------------------------------------------";
+}
+
+void mostrartipoanalisishorizontal(tipoanalisis reg)
+{
+	cout << endl << setw(5) << reg.idtipoanalisis << setw(16) << reg.nombre << setw(8) << reg.precio;
+}
+void mostrartipoanalisisvertical(tipoanalisis reg)
+{
+	cout<<endl<<"id: " << reg.idtipoanalisis;
+	cout<<endl<<"nombre: " << reg.nombre;
+	cout<<endl<<"precio: " << reg.precio;
+}
+void mostrarencabezadoanalisis()
+{
+	cout << endl << "-----------------------------------------------------------------------------";
+	cout << endl << "--------------------------- LISTADO DE ANALISIS ------------------------------";
+	cout << endl << "-----------------------------------------------------------------------------";
+	cout << endl << setw(10) << "Id analisis" << setw(10) << "Cliente"<< setw(20) << "Tipo de analisis";
+	cout << endl << "-----------------------------------------------------------------------------";
+}
+
+void mostraranalisishorizontal(analisis reg)
+{
+	cout << endl << setw(10) << reg.idanalisis;
+	mostrarnombrecliente(reg.idcliente);
+	mostrarnombreanalisis(reg.idtipoanalisis);
+	
+	//cout << endl << setw(10) << reg.idanalisis << setw(10) << reg.idcliente << setw(20) << reg.idtipoanalisis;
+}
+void mostraranalisisvertical(analisis reg)
+{
+	cout<<endl<<"id: " << reg.idanalisis;
+	cout<<endl<<"cliente: " << reg.idcliente;
+	cout<<endl<<"tipo de analisis: " << reg.idtipoanalisis;
+}
+void mostrarencabezadoresultado()
+{
+	cout << endl << "-----------------------------------------------------------------------------";
+	cout << endl << "--------------------------- LISTADO DE ANALISIS ------------------------------";
+	cout << endl << "-----------------------------------------------------------------------------";
+	cout << endl << setw(5) << "Id" << setw(5) << "analisis"<< setw(15) << "resultado"<< setw(15) << "diagnostico";
+	cout << endl << "-----------------------------------------------------------------------------";
+}
+
+void mostrarresultadohorizontal(resultado reg)
+{
+	cout << endl << setw(5) << reg.idresultado << setw(5) << reg.idanalisis << setw(15) << reg.resultados << setw(15) << reg.diagnostico;
+}
+void mostrarresultadovertical(resultado reg)
+{
+	cout<<endl<<"id: " << reg.idresultado;
+	cout<<endl<<"analisis: " << reg.idanalisis;
+	cout<<endl<<"resultados: " << reg.resultados;
+	cout<<endl<<"diagnostico: " << reg.diagnostico;
+}
+void listarusuario()
+{
+	FILE *ptr;
+	usuario reg;
+	ptr = fopen("Usuarios.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg, sizeof(reg), 1, ptr);
+		mostrarencabezadousuario();
+		while(!feof(ptr))
+		{
+			if(reg.estado == 0)
+			{
+				mostrarusuariohorizontal(reg);
+			}
+			fread(&reg, sizeof(reg), 1, ptr);
+		}
+		cout << endl << "-----------------------------------------------------------------------------";
+		fclose(ptr);
+	}
+	else
+	{
+		cout << "No existe el Archivo";
+	}
+
+}
+void listarcliente()
+{
+	FILE *ptr;
+	cliente reg;
+	ptr = fopen("Cliente.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg, sizeof(reg), 1, ptr);
+		cout<<endl;
+		mostrarencabezadocliente();
+		cout<<endl;
+		while(!feof(ptr))
+		{
+			if(reg.estado == 0)
+			{
+				mostrarclientehorizontal(reg);
+			}
+			fread(&reg, sizeof(reg), 1, ptr);
+		}
+		cout << endl << "-----------------------------------------------------------------------------";
+		fclose(ptr);
+	}
+	else
+	{
+		cout << "No existe el Archivo";
+	}
+}
+
+void listarencargado()
+{
+	FILE *ptr;
+	encargado reg;
+	ptr = fopen("Encargado.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg, sizeof(reg), 1, ptr);
+		cout<<endl;
+		mostrarencabezadoencargado();
+		cout<<endl;
+		while(!feof(ptr))
+		{
+			if(reg.estado == 0)
+			{
+				mostrarencargadohorizontal(reg);
+			}
+			fread(&reg, sizeof(reg), 1, ptr);
+		}
+		cout << endl << "-----------------------------------------------------------------------------";
+		fclose(ptr);
+	}
+	else
+	{
+		cout << "No existe el Archivo";
+	}
+}
+
+void listartipoanalisis()
+{
+	FILE *ptr;
+	tipoanalisis reg;
+	ptr = fopen("TipoAnalisis.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg, sizeof(reg), 1, ptr);
+		cout<<endl;
+		mostrarencabezadotipoanalisis();
+		cout<<endl;
+		while(!feof(ptr))
+		{
+			if(reg.estado == 0)
+			{
+				mostrartipoanalisishorizontal(reg);
+			}
+			fread(&reg, sizeof(reg), 1, ptr);
+		}
+		cout << endl << "-----------------------------------------------------------------------------";
+		fclose(ptr);
+	}
+	else
+	{
+		cout << "No existe el Archivo";
+	}
+}
+
+void listaranalisis()
+{
+	FILE *ptr;
+	analisis reg;
+	ptr = fopen("Analisis.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg, sizeof(reg), 1, ptr);
+		cout<<endl;
+		mostrarencabezadoanalisis();
+		cout<<endl;
+		while(!feof(ptr))
+		{
+			if(reg.estado == 0)
+			{
+				mostraranalisishorizontal(reg);
+			}
+			fread(&reg, sizeof(reg), 1, ptr);
+		}
+		cout << endl << "-----------------------------------------------------------------------------";
+		fclose(ptr);
+	}
+	else
+	{
+		cout << "No existe el Archivo";
+	}
+}
+
+
+void listaranalisispendiente()
+{
+	FILE *ptr;
+	analisis reg;
+	ptr = fopen("Analisis.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg, sizeof(reg), 1, ptr);
+		cout<<endl;
+		mostrarencabezadoanalisis();
+		cout<<endl;
+		while(!feof(ptr))
+		{
+			if(reg.estado == 0)
+			{
+				if(resultadoPendiente(reg.idanalisis))
+				{
+					mostraranalisishorizontal(reg);
+				}
+			}
+			fread(&reg, sizeof(reg), 1, ptr);
+		}
+		cout << endl << "-----------------------------------------------------------------------------";
+		fclose(ptr);
+	}
+	else
+	{
+		cout << "No existe el Archivo";
+	}
+}
+
+
+void listarresultado()
+{
+	FILE *ptr;
+	resultado reg;
+	ptr = fopen("Resultado.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg, sizeof(reg), 1, ptr);
+		cout<<endl;
+		mostrarencabezadoresultado();
+		cout<<endl;
+		while(!feof(ptr))
+		{
+			if(reg.estado == 0)
+			{
+				mostrarresultadohorizontal(reg);
+			}
+			fread(&reg, sizeof(reg), 1, ptr);
+		}
+		cout << endl << "-----------------------------------------------------------------------------";
+		fclose(ptr);
+	}
+	else
+	{
+		cout << "No existe el Archivo";
+	}
+}
+
+//////////// MODIFICAR////////////////
+//bool obtenertelefono(int id,string dato)
+//{
+//	FILE *ptr;
+//	usuario reg;
+//	bool k = false;
+//	ptr = fopen("Usuarios.dat","rb+");
+//	if(ptr != NULL)
+//	{
+//		fread(&reg,sizeof(reg),1,ptr);
+//		if(id == reg.idusuario)
+//			{
+//				k = true;
+//			}
+//	}
+//	else
+//	{
+//		cout << endl << "El archivo no existe";
+//	}
+//	fclose(ptr);
+//	return(k);
+//}
+int obtenerPosicionUsuario(int id)
+{
+	FILE *ptr;
+	usuario reg;
+	int cont = 0, pos;
+	ptr = fopen("Usuarios.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			cont++;
+			if(reg.idusuario == id)
+			{
+				pos = cont;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	return(pos);
+}
+
+int obtenerPosicionCliente(int id)
+{
+	FILE *ptr;
+	cliente reg;
+	int cont = 0, pos=0;
+	ptr = fopen("Cliente.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			cont++;
+			if(reg.idusuario == id)
+			{
+				pos = cont;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	return(pos);
+}
+
+int obtenerPosicionEncargado(int id)
+{
+	FILE *ptr;
+	encargado reg;
+	int cont = 0, pos;
+	ptr = fopen("Encargado.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			cont++;
+			if(reg.idusuario == id)
+			{
+				pos = cont;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	return(pos);
+}
+int obtenerPosicionTipoAnalisis(int id)
+{
+	FILE *ptr;
+	tipoanalisis reg;
+	int cont = 0, pos;
+	ptr = fopen("TipoAnalisis.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			cont++;
+			if(reg.idtipoanalisis == id)
+			{
+				pos = cont;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	return(pos);
+}
+int obtenerPosicionAnalisis(int id)
+{
+	FILE *ptr;
+	analisis reg;
+	int cont = 0, pos;
+	ptr = fopen("Analisis.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			cont++;
+			if(reg.idanalisis == id)
+			{
+				pos = cont;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	return(pos);
+}
+int obtenerPosicionResultado(int id)
+{
+	FILE *ptr;
+	resultado reg;
+	int cont = 0, pos;
+	ptr = fopen("Resultado.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			cont++;
+			if(reg.idresultado == id)
+			{
+				pos = cont;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	return(pos);
+}
+///////////////////////////////////////ANA////////
+void modificarUsuario()
+{
+	FILE *ptr;
+	usuario reg;
+	int id, pos;
+	cout << "Ingrese el Id de usuario que desea modificar: ";
+	cin >> id;
+	ptr = fopen("Usuarios.dat","rb+");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idusuario == id)
+			{
+				leerusuario(reg);
+				fseek(ptr,ftell(ptr)-sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+				fclose(ptr);
+				//getch();
+				return;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+
+void modificarCliente()
+{
+	FILE *ptr;
+	cliente reg;
+	int id, pos;
+	cout << "Ingrese el ID de cliente que desea modificar: ";
+	cin >> id;
+	pos = obtenerPosicionCliente(id);
+	ptr = fopen("Cliente.dat","rb+");
+	if(ptr != NULL)
+	{
+		fseek(ptr,(pos-1)*sizeof(reg),SEEK_SET);
+		fread(&reg,sizeof(reg),1,ptr);
+		if(!feof(ptr) && reg.estado == 0)
+		{
+			leercliente(reg);
+			fseek(ptr,(pos-1)*sizeof(reg),SEEK_SET);
+			fwrite(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+
+void modificarEncargado()
+{
+	FILE *ptr;
+	encargado reg;
+	int id, pos;
+	cout << "Ingrese el encargado que desea modificar: ";
+	cin >> id;
+	ptr = fopen("Encargado.dat","rb+");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idusuario == id)
+			{
+				leerencargado(reg);
+				fseek(ptr,ftell(ptr)-sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+				fclose(ptr);
+				getch();
+				return;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+void modificarTipoAnalisis()
+{
+	FILE *ptr;
+	tipoanalisis reg;
+	int id, pos;
+	cout << "Ingrese el tipo de analisis que desea modificar: ";
+	cin >> id;
+	ptr = fopen("Rev_revisado.dat","r+b");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idtipoanalisis == id)
+			{
+				leertipoanalisis(reg);
+				fseek(ptr,ftell(ptr)-sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+				fclose(ptr);
+				//getch();
+				return;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+
+void modificarAnalisis()
+{
+	FILE *ptr;
+	analisis reg;
+	int id, pos;
+	cout << "Ingrese el id de analisis que desea modificar: ";
+	cin >> id;
+	ptr = fopen("Analisis.dat","rb+");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idanalisis == id)
+			{
+				leeranalisis(reg);
+				fseek(ptr,ftell(ptr)-sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+				fclose(ptr);
+				//getch();
+				return;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+
+void modificarResultado()
+{
+	FILE *ptr;
+	resultado reg;
+	int id, pos;
+	cout << "Ingrese el id de resultado que desea modificar: ";
+	cin >> id;
+	ptr = fopen("Resultado.dat","rb+");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idresultado == id)
+			{
+				leerresultado(reg);
+				fseek(ptr,ftell(ptr)-sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+				fclose(ptr);
+				getch();
+				return;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+
+void buscarUsuario()
+{
+	FILE *ptr;
+	usuario reg;
+	int id,pos;
+	cout << "Ingrese el Id usuario que desea buscar: ";
+	cin >> id;
+	ptr = fopen("Usuarios.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idusuario == id)
+			{
+				mostrarusuariovertical(reg);
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+
+void buscarCliente()
+{
+	FILE *ptr;
+	cliente reg;
+	int id,pos;
+	cout << "Ingrese el Id de usuario del cliente que desea buscar: ";
+	cin >> id;
+	ptr = fopen("Cliente.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idusuario == id)
+			{
+				mostrarclientevertical(reg);
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+
+void buscarEncargado()
+{
+	FILE *ptr;
+	encargado reg;
+	int id,pos;
+	cout << "Ingrese el Id usuario del encargado que desea buscar: ";
+	cin >> id;
+	ptr = fopen("Encargado.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idusuario == id)
+			{
+				mostrarencargadovertical(reg);
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+void buscarTipoAnalisis()
+{
+	FILE *ptr;
+	tipoanalisis reg;
+	int id,pos;
+	cout << "Ingrese el Id de tipo de analisis que desea buscar: ";
+	cin >> id;
+	ptr = fopen("TipoAnalisis.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idtipoanalisis == id)
+			{
+				mostrartipoanalisisvertical(reg);
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+void buscarAnalisis()
+{
+	FILE *ptr;
+	analisis reg;
+	int id,pos;
+	cout << "Ingrese el Id de analisis que desea buscar: ";
+	cin >> id;
+	ptr = fopen("Analisis.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idanalisis == id)
+			{
+				mostraranalisisvertical(reg);
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+
+void buscarResultado()
+{
+	FILE *ptr;
+	resultado reg;
+	int id,pos;
+	cout << "Ingrese el Id resultado que desea buscar: ";
+	cin >> id;
+	ptr = fopen("Resultado.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idresultado == id)
+			{
+				mostrarresultadovertical(reg);
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+
+void eliminarUsuario()
+{
+	FILE *ptr;
+	usuario reg;
+	int id,pos;
+	cout << endl << "Ingrese el Id del Cliente que desea eliminar: ";
+	cin >> id;
+	ptr = fopen("Usuarios.dat","rb+");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idusuario == id)
+			{
+				if(reg.acceso == 1)
+				{
+					cout<< endl<< "no se puede eliminar al administrador";
+				}
+				else
+				{
+					reg.estado = 9;
+					fseek(ptr,ftell(ptr)-sizeof(reg),SEEK_SET);
+					fwrite(&reg,sizeof(reg),1,ptr);
+					fclose(ptr);
+					if(reg.acceso == 2)
+					{
+						eliminarEncargado(reg.idusuario);
+					}
+					if(reg.acceso == 3)
+					{
+						eliminarCliente(reg.idusuario);
+					}
+					//getch();
+					return;
+
+				}
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	else
+	{
+		cout << endl << "No se puede Eliminar";
+	}
+}
+void eliminarCliente(int id)
+{
+	FILE *ptr;
+	cliente reg;
+	int pos;
+	cout << endl << "Ingrese el Id del cliente que desea eliminar: ";
+	cin >> id;
+	ptr = fopen("Cliente.dat","rb+");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idusuario == id)
+			{
+				reg.estado = 9;
+				fseek(ptr,ftell(ptr)-sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+				fclose(ptr);
+				getch();
+				return;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	else
+	{
+		cout << endl << "No se puede Eliminar";
+	}
+}
+void eliminarEncargado(int id)
+{
+	FILE *ptr;
+	encargado reg;
+	int pos;
+	ptr = fopen("Encargado.dat","rb+");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idusuario == id)
+			{
+				reg.estado = 9;
+				fseek(ptr,ftell(ptr)-sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+				fclose(ptr);
+				getch();
+				return;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	else
+	{
+		cout << endl << "No se puede Eliminar";
+	}
+}
+
+void eliminarTipoAnalisis()
+{
+	FILE *ptr;
+	tipoanalisis reg;
+	int id,pos;
+	cout << endl << "Ingrese el Id de tipo de analisis que desea eliminar: ";
+	cin >> id;
+	ptr = fopen("TipoAnalisis.dat","rb+");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idtipoanalisis == id)
+			{
+				reg.estado = 9;
+				fseek(ptr,ftell(ptr)-sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+				fclose(ptr);
+				getch();
+				return;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	else
+	{
+		cout << endl << "No se puede Eliminar";
+	}
+}
+void eliminarAnalisis()
+{
+	FILE *ptr;
+	analisis reg;
+	int id,pos;
+	cout << endl << "Ingrese el Id de analisis que desea eliminar: ";
+	cin >> id;
+	ptr = fopen("Analisis.dat","rb+");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idanalisis == id)
+			{
+				reg.estado = 9;
+				fseek(ptr,ftell(ptr)-sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+				fclose(ptr);
+				getch();
+				return;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	else
+	{
+		cout << endl << "No se puede Eliminar";
+	}
+}
+
+void eliminarResultado()
+{
+	FILE *ptr;
+	resultado reg;
+	int id,pos;
+	cout << endl << "Ingrese el Id de resultado que desea eliminar: ";
+	cin >> id;
+	ptr = fopen("Resultado.dat","rb+");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idresultado == id)
+			{
+				reg.estado = 9;
+				fseek(ptr,ftell(ptr)-sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+				fclose(ptr);
+				getch();
+				return;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	else
+	{
+		cout << endl << "No se puede Eliminar";
+	}
+}
+
+
+bool existeUsuario(int id)
+{
+	FILE *ptr;
+	usuario reg;
+	bool existe = false;
+
+	ptr = fopen("Usuarios.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idusuario == id)
+			{
+				existe = true;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	return existe;
+}
+
+bool existeTipoAnalisis(int id)
+{
+	FILE *ptr;
+	tipoanalisis reg;
+	bool existe = false;
+	ptr = fopen("TipoAnalisis.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idtipoanalisis == id)
+			{
+				existe = true;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	return existe;
+}
+bool existeAnalisis(int id)
+{
+	FILE *ptr;
+	analisis reg;
+	bool existe = false;
+	ptr = fopen("Analisis.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idanalisis == id)
+			{
+				existe = true;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	return existe;
+}
+
+bool existeResultado(int id)
+{
+	FILE *ptr;
+	resultado reg;
+	bool existe = false;
+	ptr = fopen("Resultado.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idresultado == id)
+			{
+				existe = true;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	return existe;
+}
+
+void mostrarnombrecliente(int idcliente)
+{
+	FILE *ptr;
+	usuario reg;
+	ptr = fopen("Usuarios.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idusuario == idcliente && reg.estado == 0)
+			{
+				cout<< setw(10) << reg.nombre;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+void mostrarnombreanalisis(int idtipoanalisis)
+{
+	FILE *ptr;
+	tipoanalisis reg;
+	ptr = fopen("TipoAnalisis.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg, sizeof(reg), 1, ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idtipoanalisis == idtipoanalisis && reg.estado == 0)
+			{
+				cout<<setw(20)<<reg.nombre;
+			}
+			fread(&reg, sizeof(reg), 1, ptr);
+		}
+		fclose(ptr);
+	}
+	else
+	{
+		cout << "No existe el Archivo";
+	}
+}
+void mostrarTipoUsuario(int x)
+{
+	switch(x)
+	{
+	case 1:
+		cout<<"administrador";
+		break;
+	case 2:
+		cout<<"encargado";
+		break;
+	case 3:
+		cout<<"cliente";
+		break;
+	}
+}
+void encontrarresultadosanalisis(int id)
+{
+	FILE *ptr;
+	resultado reg;
+	ptr = fopen("Resultado.dat","rb");
+	int x = 1;
+	if(ptr != NULL)
+	{
+		fread(&reg, sizeof(reg), 1, ptr);
+		while(!feof(ptr))
+		{
+			if(reg.estado == 0 && reg.idanalisis == id)
+			{
+				cout<<endl<<"Resultado num " <<x << " : " <<reg.resultados;
+				cout<<endl<<"Diagnostico: "<<reg.diagnostico;
+				x++;
+			}
+			fread(&reg, sizeof(reg), 1, ptr);
+		}
+		fclose(ptr);
+	}
+	else
+	{
+		cout << "No existe el Archivo";
+	}
+}
+void reporteresultadosdeanalisis()
+{
+	FILE *ptr;
+	analisis reg;
+	ptr = fopen("Analisis.dat","rb");
+	if(ptr != NULL)
+	{
+		fread(&reg, sizeof(reg), 1, ptr);
+		cout<<endl;
+		cout<<endl;
+		while(!feof(ptr))
+		{
+			if(reg.estado == 0 && reg.idcliente == id_usuario_actual)
+			{
+				cout<<endl<<"analisis " << reg.idanalisis << " de tipo " << reg.idtipoanalisis;
+				encontrarresultadosanalisis(reg.idanalisis);
+				cout << endl << "-----------------------------------------------------------------------------";
+			}
+			fread(&reg, sizeof(reg), 1, ptr);
+		}
+		cout << endl << "-----------------------------------------------------------------------------";
+		fclose(ptr);
+	}
+	else
+	{
+		cout << "No existe el Archivo";
+	}
+}
+bool resultadoPendiente(int id)
+{
+	FILE *ptr;
+	resultado reg;
+	int pos;
+	ptr = fopen("Resultado.dat","rb");
+	bool pendiente = true;
+	if(ptr != NULL)
+	{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr))
+		{
+			if(reg.idanalisis == id)
+			{
+				pendiente = false;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+	return pendiente;
+}
