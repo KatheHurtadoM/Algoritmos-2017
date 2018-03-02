@@ -1,0 +1,174 @@
+#include "stdafx.h"
+#include "iostream"
+#include "conio.h"
+
+using namespace std;
+
+//TEMA RECURSIVIDAD
+//Mostrar los n primeros numeros naturals impares
+
+void mostrarImpares(int n)
+{
+	if(n==0)
+	{
+
+	}
+	else
+	{
+		mostrarImpares(n-1); 
+		if(n%2!=0)
+		{
+		cout<<n<<" "; 
+		}
+		
+	}
+
+}
+//Para mostrar los numero al reves
+/*void mostrarImpares(int n)
+{
+	if(n==0)
+	{
+
+	}
+	else
+	{
+		
+		if(n%2!=0)
+		{
+		cout<<n<<" "; 
+		}
+		mostrarImpares(n-1); 
+		
+	}
+
+}
+*/
+
+//MOstrar los n primeros elementos de la siguiente serie
+
+
+float factorial(int n)
+{
+	if(n==0)
+	{
+		return 1;
+	}
+	else
+	{
+		float f=factorial(n-1);
+		return f*n;
+	}
+}
+float potencia(int x, int y)
+{
+	if(y==0)
+	{
+		return 1;
+	}
+	else
+	{
+		float s=potencia(x,y-1);
+		return s*x;
+	}
+}
+
+void serie (int n)
+{
+	if(n==0)
+	{
+	
+	}
+	else
+	{
+		serie(n-1);
+		float f=factorial(n)/potencia(n,n);
+		cout<<f<<" ";
+	}
+}
+int sumaDigitos(int num)
+{
+	if(num<10)
+	{
+		return num;
+	}
+	else
+	{
+		int sd=sumaDigitos(num/10);
+		return sd+num%10;
+	}
+
+}
+
+//mostrar el numero mayor de un digito 
+
+int digitoMayor(int n)
+{
+	if(n<10)
+	{
+		return n;
+	}
+	else 
+	{
+		int d=n%10;
+		int may=digitoMayor(n/10);
+		if(d>may)
+		{
+			return d;
+		}
+		else
+			return may;
+	}
+}
+
+//mostrar la suma de los digitos pares
+
+int sumaPares(int n)
+{
+	if(n<10)
+	{
+		if(n%2==0)
+		{
+			return n;
+		}
+		else
+		{
+			return 0;
+		}
+		
+	}
+	else
+	{
+		int d=n%10;
+		int sp=sumaPares(n/10);
+		if(n%2==0)
+		{
+			return sp+d;
+		}
+		else
+		{
+			return sp;
+		}
+
+	}
+}
+void main()
+{
+
+	int n,x;
+	float s;
+	cout<<"Ingrese n: ";
+	cin>>n;
+	//mostrarImpares(n);
+	//s=sumaDigitos(n);
+	//cout<<s;
+	//serie(n);
+	int a;
+	//a=digitoMayor(n);
+	//cout<<a;
+	a=sumaPares(n);
+	cout<<a;
+	getch();
+}
+
+
